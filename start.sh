@@ -6,6 +6,21 @@
 : ${TUNNEL_HOST:?cannot be empty}
 : ${TUNNEL_REMOTES:?cannot by empty}
 
+: ${PUBLIC_KEY:?cannot be empty}
+: ${PRIVATE_KEY:?cannot by empty}
+: ${PRIVATE_KEY_PASSWORD:=""}
+: ${EXPOSE_PORT:=1337}
+
+SSH_DIR=${HOME}/.ssh
+mkdir -p ${SSH_DIR}
+echo $PUBLIC_KEY | sed 's/\\n/\n/g' >> ${SSH_DIR}/id_rsa.pub
+echo $PRIVATE_KEY | sed 's/\\n/\n/g' >> ${SSH_DIR}/id_rsa
+
+chmod 400 ${SSH_DIR}/id_rsa.pub
+chmod 400 ${SSH_DIR}/id_rsa
+eval `ssh-agent`
+DISPLAY=1 SSH_ASKPASS="./ssh-unlock.sh" ssh-add ${SSH_DIR}/id_rsa < /dev/null
+
 getUser() {
   local HOST_PTRN=$1
   if [ `echo ${HOST_PTRN} | grep -c "@"` -gt 0 ]; then
@@ -41,7 +56,7 @@ for REMOTE in ${TUNNEL_REMOTES}; do
     REMOTE_HOST=$(getHost ${REMOTE})
     REMOTE_PORT=$(getPort ${REMOTE})
 
-    COMMAND_FORWARDED_SSH=${COMMAND_FORWARDED_SSH}' -L '\*:${REMOTE_PORT}':'${REMOTE_HOST}':'${REMOTE_PORT}
+    COMMAND_FORWARDED_SSH=${COMMAND_FORWARDED_SSH}' -v -L '\*:${REMOTE_PORT}':'${REMOTE_HOST}':'${REMOTE_PORT}
 done
 
 COMMAND_FORWARDED_SSH=${COMMAND_FORWARDED_SSH}' '${TUNNEL_HOST_USER}'@'${TUNNEL_HOST_HOST}' -p '${TUNNEL_HOST_PORT}' -N'
