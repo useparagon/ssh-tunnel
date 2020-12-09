@@ -9,7 +9,6 @@
 : ${PUBLIC_KEY:?cannot be empty}
 : ${PRIVATE_KEY:?cannot by empty}
 : ${PRIVATE_KEY_PASSWORD:=""}
-: ${EXPOSE_PORT:=1337}
 
 SSH_DIR=${HOME}/.ssh
 mkdir -p ${SSH_DIR}
